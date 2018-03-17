@@ -1,22 +1,24 @@
 from gensim import corpora,models,similarities,utils
 import os
-f = open('测试文档路径')
+f = open(r'alltext\绑架罪\000.txt',encoding='utf-8')
 lines = f.readlines()
 text = []
 anyou = ''
 for line in lines:#将文件中的词装入列表
      if len(line) != 1:
-         if line.split('##')[0] != '引用法条' and line.split('##')[0] != '特征':
-             for word in line.split('##')[1].split('$'):
-                 text.append(word.replace('\n', '').replace('\t', ''))
-         if line.split('##')[0] == '特征':
-             for word in line.split('##')[1].split('\t'):
-                text.append(word.replace('\n', '').replace('\t', ''))
-         if line.split('##')[0] == '案由':
-             anyou = line.split('##')[1]
-             anyou = anyou.replace('\n', '').replace('\t', '')
+            # 抽掉引用法条
+            if line.split('##')[0] != '引用法条' and line.split('##')[0] != '特征' and line.split('##')[0] != '案由':
+                for word in line.split('##')[1].split('$'):
+                    text.append(word.replace('\n', '').replace('\t', ''))
+            if line.split('##')[0] == '特征':
+                for word in line.split('##')[1].split('\t'):
+                    text.append(word.replace('\n', '').replace('\t', ''))
+            if line.split('##')[0] == '案由':
+                for word in line.split('##')[1].split('\t'):
+                    text.append(word.replace('\n', '').replace('\t', ''))
 #到该案由路径下载入获取已经训练好的模型
-output = os.path.join ('alltext',anyou)
+fr = r'result'
+output = os.path.join (fr,'绑架罪')
 # 载入字典
 dictionary = corpora.Dictionary.load(os.path.join(output,"all.dic"))
 # 载入TFIDF模型和索引
@@ -35,7 +37,6 @@ ldavec = ldaModel[tfidfvect]
 simstfidf = indexTfidf[tfidfvect]
 #LDA相似性，相似性列表记录与每份模型中的文书的相似度
 simlda = indexLDA[ldavec]
-
 # 获取TDIDF模型中与该文档前十相近的文书号
 # 记录序号
 num = []
@@ -45,11 +46,11 @@ for i in range(0,10):
     # 相似度
     m = 0
     # 文书序号
-    mark = 1
+    mark = 0
     for likely in simstfidf:
-        if m < likely and m not in gets:
-            m = likely
-            marknow = mark
+        if m < likely and likely not in gets:
+                m = likely
+                marknow = mark
         mark = mark+1
     gets.append(m)
     num.append(marknow)
@@ -64,9 +65,9 @@ for i in range(0,10):
     # 相似度
     m = 0
     # 文书序号
-    mark = 1
+    mark = 0
     for likely in simlda:
-        if m < likely and m not in gets:
+        if m < likely and likely not in getslda:
             m = likely
             marknow = mark
         mark = mark+1
