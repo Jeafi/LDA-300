@@ -1,21 +1,7 @@
 from gensim import corpora, models, similarities, utils
 import os
-# 先对文件重新编号
-fa = os.listdir(r'alltext')
-f = r'alltext'
-fr = r'result'
-# f1是案件名称
-for f1 in fa:#遍历整个一级文件夹
-    train_set = []
-    tmp_pathall = os.path.join(f, f1)
-    fs = os.listdir(tmp_pathall)
-    i=0
-    for f2 in fs:#遍历单个案由的所有文件
-        j = '00'+str(i)+'.txt'
-        tmp_path = os.path.join(tmp_pathall,f2)
-        os.rename(tmp_path, os.path.join(tmp_pathall,j))
-        i = i+1
-# 编号完毕
+
+# 重新编号
 fa = os.listdir(r'alltext')
 f = r'alltext'
 fr = r'result'
@@ -23,6 +9,22 @@ for f1 in fa:  # 遍历整个一级文件夹
     train_set = []
     tmp_pathall = os.path.join(f, f1)
     fs = os.listdir(tmp_pathall)
+    i = 0
+    for f2 in fs:  # 遍历单个案由的所有文件
+        j = '00' + str(i) + '.txt'
+        tmp_path = os.path.join(tmp_pathall, f2)
+        os.rename(tmp_path, os.path.join(tmp_pathall, j))
+        i = i + 1
+# 构建训练集
+fa = os.listdir(r'alltext')
+f = r'alltext'
+fr = r'result'
+for f1 in fa:  # 遍历整个一级文件夹
+    train_set = []
+    tmp_pathall = os.path.join(f, f1)
+    fs = os.listdir(tmp_pathall)
+    if len(fs) <= 10:
+        continue
     for f2 in fs:  # 遍历单个案由的所有文件
         tmp_path = os.path.join(tmp_pathall, f2)
         ff = open(tmp_path, encoding='utf-8')
@@ -41,6 +43,7 @@ for f1 in fa:  # 遍历整个一级文件夹
                 if line.split('##')[0] == '案由':
                     for word in line.split('##')[1].split('\t'):
                         text.append(word.replace('\n', '').replace('\t', ''))
+        ff.close()
         train_set.append(text)
     output = os.path.join(fr, f1)  # 输出文件目录
     if not os.path.exists(output):
@@ -69,17 +72,20 @@ for f1 in fa:  # 遍历整个一级文件夹
     indexTfidf = similarities.MatrixSimilarity(tfidfVectors)
 
     indexTfidf.save(os.path.join(output, "allTFIDF.idx"))
-    # 通过TFIDF向量生成LDA模型，id2word表示编号的对应词典，num_topics表示主题数，我们这里设定的50，主题太多时间受不了。
+    #             # 通过TFIDF向量生成LDA模型，id2word表示编号的对应词典，num_topics表示主题数，我们这里设定的50，主题太多时间受不了。
 
-    lda = models.LdaModel(tfidfVectors, id2word=dictionary, num_topics=100)
-    # 把模型保存下来
+    #     lda = models.LdaModel(tfidfVectors, id2word=dictionary, num_topics=100)
+    #             # 把模型保存下来
 
-    lda.save(os.path.join(output, "allLDA50Topic.mdl"))
-    # 把所有TFIDF向量变成LDA的向量
+    #     lda.save(os.path.join(output, "allLDA50Topic.mdl"))
+    #             # 把所有TFIDF向量变成LDA的向量
 
-    corpus_lda = lda[tfidfVectors]
-    # 建立索引，把LDA数据保存下来
+    #     corpus_lda = lda[tfidfVectors]
+    #             # 建立索引，把LDA数据保存下来
 
-    indexLDA = similarities.MatrixSimilarity(corpus_lda)
+    #     indexLDA = similarities.MatrixSimilarity(corpus_lda)
 
-    indexLDA.save(os.path.join(output, "allLDA50Topic.idx"))
+    #     indexLDA.save(os.path.join(output,"allLDA50Topic.idx"))
+    #     os.remove(os.path.join(output,"allLDA50Topic.mdl.expElogbeta.npy"))
+    #     os.remove(os.path.join(output,"allLDA50Topic.mdl.id2word"))
+    #     os.remove(os.path.join(output,"allLDA50Topic.mdl.state"))
